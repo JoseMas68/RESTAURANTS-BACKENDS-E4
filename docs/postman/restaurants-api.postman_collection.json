@@ -1,0 +1,1085 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Restaurants API",
+    "description": "Colección de endpoints para el sistema de gestión de restaurantes.\n\n## Configuración inicial\n\n1. Importar esta colección en Postman\n2. Importar el environment `restaurants-api.postman_environment.json`\n3. Ejecutar el endpoint `Auth > Login` para obtener el token\n4. El token se guardará automáticamente en las variables de entorno\n\n## Variables de entorno requeridas\n\n- `baseUrl`: URL base de la API (ej: http://localhost:3000/v1)\n- `accessToken`: Se genera automáticamente al hacer login\n- `restaurantId`: ID de restaurante para pruebas\n- `reservationId`: ID de reservación para pruebas",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/v1",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Script global de pre-request",
+          "console.log('Ejecutando request a:', pm.request.url.toString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Tests globales",
+          "pm.test('Response time is less than 2000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});",
+          "",
+          "pm.test('Response has success property', function () {",
+          "    const jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property('success');",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Endpoints de autenticación",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@ejemplo.com\",\n  \"password\": \"SecurePass123!\",\n  \"firstName\": \"Usuario\",\n  \"lastName\": \"Prueba\",\n  \"phone\": \"+52 55 1234 5678\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Registra un nuevo usuario en el sistema"
+          },
+          "response": [
+            {
+              "name": "Registro exitoso",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "register"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"email\": \"test@ejemplo.com\",\n      \"firstName\": \"Usuario\",\n      \"lastName\": \"Prueba\",\n      \"phone\": \"+52 55 1234 5678\",\n      \"role\": \"customer\",\n      \"emailVerified\": false,\n      \"createdAt\": \"2024-01-15T10:30:00Z\"\n    },\n    \"tokens\": {\n      \"accessToken\": \"eyJhbGciOiJIUzI1NiIs...\",\n      \"refreshToken\": \"eyJhbGciOiJIUzI1NiIs...\",\n      \"expiresIn\": 3600\n    }\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains user and tokens', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('user');",
+                  "    pm.expect(jsonData.data).to.have.property('tokens');",
+                  "});",
+                  "",
+                  "// Guardar token automáticamente",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.environment.set('accessToken', jsonData.data.tokens.accessToken);",
+                  "    pm.environment.set('refreshToken', jsonData.data.tokens.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@ejemplo.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Inicia sesión y obtiene tokens de acceso"
+          },
+          "response": [
+            {
+              "name": "Login exitoso",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"email\": \"test@ejemplo.com\",\n      \"firstName\": \"Usuario\",\n      \"lastName\": \"Prueba\",\n      \"role\": \"customer\",\n      \"avatarUrl\": null\n    },\n    \"tokens\": {\n      \"accessToken\": \"eyJhbGciOiJIUzI1NiIs...\",\n      \"refreshToken\": \"eyJhbGciOiJIUzI1NiIs...\",\n      \"expiresIn\": 3600\n    }\n  }\n}"
+            },
+            {
+              "name": "Credenciales incorrectas",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"UNAUTHORIZED\",\n    \"message\": \"Email o contraseña incorrectos\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains tokens', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.tokens).to.have.property('accessToken');",
+                  "    pm.expect(jsonData.data.tokens).to.have.property('refreshToken');",
+                  "});",
+                  "",
+                  "// Guardar token automáticamente",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.environment.set('accessToken', jsonData.data.tokens.accessToken);",
+                  "    pm.environment.set('refreshToken', jsonData.data.tokens.refreshToken);",
+                  "    console.log('Token guardado exitosamente');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Restaurants",
+      "description": "Endpoints para gestión de restaurantes",
+      "item": [
+        {
+          "name": "Listar Restaurantes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Número de página"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Resultados por página"
+                },
+                {
+                  "key": "city",
+                  "value": "Ciudad de México",
+                  "description": "Filtrar por ciudad",
+                  "disabled": true
+                },
+                {
+                  "key": "rating",
+                  "value": "4",
+                  "description": "Rating mínimo (1-5)",
+                  "disabled": true
+                },
+                {
+                  "key": "isOpen",
+                  "value": "true",
+                  "description": "Solo restaurantes abiertos",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "italiana",
+                  "description": "Búsqueda por nombre",
+                  "disabled": true
+                },
+                {
+                  "key": "lat",
+                  "value": "19.4326",
+                  "description": "Latitud para ordenar por cercanía",
+                  "disabled": true
+                },
+                {
+                  "key": "lng",
+                  "value": "-99.1332",
+                  "description": "Longitud para ordenar por cercanía",
+                  "disabled": true
+                },
+                {
+                  "key": "sortBy",
+                  "value": "rating",
+                  "description": "Ordenar por: createdAt, rating, name, distance",
+                  "disabled": true
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc",
+                  "description": "Orden: asc o desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Obtiene una lista paginada de restaurantes con filtros opcionales.\n\n**No requiere autenticación**"
+          },
+          "response": [
+            {
+              "name": "Lista de restaurantes",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/restaurants?page=1&limit=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["restaurants"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "limit", "value": "10" }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"rest-001\",\n      \"name\": \"La Trattoria Italiana\",\n      \"slug\": \"la-trattoria-italiana\",\n      \"description\": \"Auténtica cocina italiana en el corazón de la ciudad\",\n      \"phone\": \"+52 55 1234 5678\",\n      \"logoUrl\": \"https://cdn.example.com/restaurants/trattoria-logo.jpg\",\n      \"coverImageUrl\": \"https://cdn.example.com/restaurants/trattoria-cover.jpg\",\n      \"address\": {\n        \"addressLine\": \"Av. Presidente Masaryk 123\",\n        \"city\": \"Ciudad de México\",\n        \"state\": \"CDMX\",\n        \"postalCode\": \"11560\"\n      },\n      \"location\": {\n        \"latitude\": 19.4326,\n        \"longitude\": -99.1870\n      },\n      \"averageRating\": 4.7,\n      \"totalReviews\": 234,\n      \"isOpen\": true,\n      \"currentSchedule\": {\n        \"openTime\": \"12:00\",\n        \"closeTime\": \"23:00\"\n      }\n    },\n    {\n      \"id\": \"rest-002\",\n      \"name\": \"Sushi Master\",\n      \"slug\": \"sushi-master\",\n      \"description\": \"Los mejores rolls de la ciudad\",\n      \"phone\": \"+52 55 9876 5432\",\n      \"logoUrl\": \"https://cdn.example.com/restaurants/sushi-logo.jpg\",\n      \"address\": {\n        \"addressLine\": \"Av. Insurgentes Sur 1234\",\n        \"city\": \"Ciudad de México\",\n        \"state\": \"CDMX\",\n        \"postalCode\": \"03100\"\n      },\n      \"averageRating\": 4.5,\n      \"totalReviews\": 189,\n      \"isOpen\": true\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"limit\": 10,\n    \"total\": 45,\n    \"totalPages\": 5,\n    \"hasNext\": true,\n    \"hasPrev\": false\n  },\n  \"meta\": {\n    \"timestamp\": \"2024-01-15T10:30:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Filtrado por ciudad y rating",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/restaurants?city=Ciudad de México&rating=4&isOpen=true",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["restaurants"],
+                  "query": [
+                    { "key": "city", "value": "Ciudad de México" },
+                    { "key": "rating", "value": "4" },
+                    { "key": "isOpen", "value": "true" }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"rest-001\",\n      \"name\": \"La Trattoria Italiana\",\n      \"slug\": \"la-trattoria-italiana\",\n      \"averageRating\": 4.7,\n      \"totalReviews\": 234,\n      \"isOpen\": true,\n      \"address\": {\n        \"city\": \"Ciudad de México\"\n      }\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"limit\": 20,\n    \"total\": 12,\n    \"totalPages\": 1,\n    \"hasNext\": false,\n    \"hasPrev\": false\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Response has pagination', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('pagination');",
+                  "    pm.expect(jsonData.pagination).to.have.property('page');",
+                  "    pm.expect(jsonData.pagination).to.have.property('total');",
+                  "});",
+                  "",
+                  "pm.test('Each restaurant has required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.length > 0) {",
+                  "        const restaurant = jsonData.data[0];",
+                  "        pm.expect(restaurant).to.have.property('id');",
+                  "        pm.expect(restaurant).to.have.property('name');",
+                  "        pm.expect(restaurant).to.have.property('slug');",
+                  "    }",
+                  "});",
+                  "",
+                  "// Guardar primer restaurante para otras pruebas",
+                  "const jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    pm.environment.set('restaurantId', jsonData.data[0].id);",
+                  "    pm.environment.set('restaurantSlug', jsonData.data[0].slug);",
+                  "    console.log('Restaurant ID guardado:', jsonData.data[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener Restaurante por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}"]
+            },
+            "description": "Obtiene el detalle completo de un restaurante por su ID o slug.\n\n**No requiere autenticación**"
+          },
+          "response": [
+            {
+              "name": "Detalle del restaurante",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"rest-001\",\n    \"name\": \"La Trattoria Italiana\",\n    \"slug\": \"la-trattoria-italiana\",\n    \"description\": \"Auténtica cocina italiana en el corazón de la ciudad. Más de 20 años de tradición.\",\n    \"phone\": \"+52 55 1234 5678\",\n    \"email\": \"contacto@latrattoria.com\",\n    \"logoUrl\": \"https://cdn.example.com/restaurants/trattoria-logo.jpg\",\n    \"coverImageUrl\": \"https://cdn.example.com/restaurants/trattoria-cover.jpg\",\n    \"address\": {\n      \"addressLine\": \"Av. Presidente Masaryk 123\",\n      \"city\": \"Ciudad de México\",\n      \"state\": \"CDMX\",\n      \"postalCode\": \"11560\",\n      \"country\": \"México\"\n    },\n    \"location\": {\n      \"latitude\": 19.4326,\n      \"longitude\": -99.1870\n    },\n    \"averageRating\": 4.7,\n    \"totalReviews\": 234,\n    \"isActive\": true,\n    \"schedules\": [\n      { \"dayOfWeek\": 0, \"openTime\": \"12:00\", \"closeTime\": \"22:00\", \"isClosed\": false },\n      { \"dayOfWeek\": 1, \"openTime\": \"12:00\", \"closeTime\": \"23:00\", \"isClosed\": false },\n      { \"dayOfWeek\": 2, \"openTime\": \"12:00\", \"closeTime\": \"23:00\", \"isClosed\": false },\n      { \"dayOfWeek\": 3, \"openTime\": \"12:00\", \"closeTime\": \"23:00\", \"isClosed\": false },\n      { \"dayOfWeek\": 4, \"openTime\": \"12:00\", \"closeTime\": \"00:00\", \"isClosed\": false },\n      { \"dayOfWeek\": 5, \"openTime\": \"12:00\", \"closeTime\": \"00:00\", \"isClosed\": false },\n      { \"dayOfWeek\": 6, \"openTime\": \"13:00\", \"closeTime\": \"22:00\", \"isClosed\": false }\n    ],\n    \"createdAt\": \"2024-01-01T00:00:00Z\",\n    \"updatedAt\": \"2024-01-20T10:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Restaurante no encontrado",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"Restaurante no encontrado\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Restaurant has schedules', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('schedules');",
+                  "    pm.expect(jsonData.data.schedules).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Restaurant has complete address', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.address).to.have.property('addressLine');",
+                  "    pm.expect(jsonData.data.address).to.have.property('city');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Menu",
+      "description": "Endpoints para ver el menú de restaurantes",
+      "item": [
+        {
+          "name": "Ver Menú Completo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/products/menu?availableOnly=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "products", "menu"],
+              "query": [
+                {
+                  "key": "availableOnly",
+                  "value": "true",
+                  "description": "Solo productos disponibles"
+                }
+              ]
+            },
+            "description": "Obtiene el menú completo del restaurante agrupado por categorías.\n\n**No requiere autenticación**"
+          },
+          "response": [
+            {
+              "name": "Menú completo",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"restaurant\": {\n      \"id\": \"rest-001\",\n      \"name\": \"La Trattoria Italiana\"\n    },\n    \"categories\": [\n      {\n        \"id\": \"cat-001\",\n        \"name\": \"Entradas\",\n        \"slug\": \"entradas\",\n        \"description\": \"Para comenzar tu experiencia\",\n        \"products\": [\n          {\n            \"id\": \"prod-001\",\n            \"name\": \"Bruschetta Clásica\",\n            \"slug\": \"bruschetta-clasica\",\n            \"description\": \"Pan tostado con tomate fresco, albahaca y aceite de oliva\",\n            \"price\": 120.00,\n            \"discountPrice\": null,\n            \"imageUrl\": \"https://cdn.example.com/products/bruschetta.jpg\",\n            \"preparationTime\": 10,\n            \"calories\": 180,\n            \"isVegetarian\": true,\n            \"isVegan\": true,\n            \"isGlutenFree\": false,\n            \"isFeatured\": true,\n            \"isAvailable\": true\n          },\n          {\n            \"id\": \"prod-002\",\n            \"name\": \"Carpaccio di Manzo\",\n            \"slug\": \"carpaccio-di-manzo\",\n            \"description\": \"Finas láminas de res con rúcula, parmesano y aceite de trufa\",\n            \"price\": 195.00,\n            \"imageUrl\": \"https://cdn.example.com/products/carpaccio.jpg\",\n            \"preparationTime\": 15,\n            \"isVegetarian\": false,\n            \"isFeatured\": true\n          }\n        ]\n      },\n      {\n        \"id\": \"cat-002\",\n        \"name\": \"Platos Fuertes\",\n        \"slug\": \"platos-fuertes\",\n        \"description\": \"Nuestras especialidades\",\n        \"products\": [\n          {\n            \"id\": \"prod-003\",\n            \"name\": \"Pasta Carbonara\",\n            \"slug\": \"pasta-carbonara\",\n            \"description\": \"Spaghetti con huevo, queso pecorino, guanciale y pimienta negra\",\n            \"price\": 220.00,\n            \"discountPrice\": 189.00,\n            \"imageUrl\": \"https://cdn.example.com/products/carbonara.jpg\",\n            \"preparationTime\": 20,\n            \"calories\": 650,\n            \"isVegetarian\": false,\n            \"isFeatured\": true\n          },\n          {\n            \"id\": \"prod-004\",\n            \"name\": \"Risotto ai Funghi\",\n            \"slug\": \"risotto-ai-funghi\",\n            \"description\": \"Arroz arborio cremoso con mix de hongos silvestres y parmesano\",\n            \"price\": 245.00,\n            \"imageUrl\": \"https://cdn.example.com/products/risotto.jpg\",\n            \"preparationTime\": 25,\n            \"calories\": 520,\n            \"isVegetarian\": true,\n            \"isGlutenFree\": true\n          }\n        ]\n      },\n      {\n        \"id\": \"cat-003\",\n        \"name\": \"Postres\",\n        \"slug\": \"postres\",\n        \"description\": \"Dulces tentaciones\",\n        \"products\": [\n          {\n            \"id\": \"prod-005\",\n            \"name\": \"Tiramisú\",\n            \"slug\": \"tiramisu\",\n            \"description\": \"El clásico postre italiano con mascarpone y café\",\n            \"price\": 95.00,\n            \"imageUrl\": \"https://cdn.example.com/products/tiramisu.jpg\",\n            \"preparationTime\": 5,\n            \"calories\": 380,\n            \"isVegetarian\": true\n          }\n        ]\n      },\n      {\n        \"id\": \"cat-004\",\n        \"name\": \"Bebidas\",\n        \"slug\": \"bebidas\",\n        \"products\": [\n          {\n            \"id\": \"prod-006\",\n            \"name\": \"Limonata della Casa\",\n            \"slug\": \"limonata-della-casa\",\n            \"description\": \"Limonada natural con hierbabuena\",\n            \"price\": 55.00,\n            \"isVegan\": true,\n            \"isGlutenFree\": true\n          }\n        ]\n      }\n    ]\n  },\n  \"meta\": {\n    \"timestamp\": \"2024-01-15T10:30:00Z\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has restaurant info', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('restaurant');",
+                  "    pm.expect(jsonData.data.restaurant).to.have.property('name');",
+                  "});",
+                  "",
+                  "pm.test('Response has categories array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('categories');",
+                  "    pm.expect(jsonData.data.categories).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Each category has products', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    jsonData.data.categories.forEach(function(category) {",
+                  "        pm.expect(category).to.have.property('id');",
+                  "        pm.expect(category).to.have.property('name');",
+                  "        pm.expect(category).to.have.property('products');",
+                  "        pm.expect(category.products).to.be.an('array');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Products have price information', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const firstCategory = jsonData.data.categories[0];",
+                  "    if (firstCategory && firstCategory.products.length > 0) {",
+                  "        const product = firstCategory.products[0];",
+                  "        pm.expect(product).to.have.property('price');",
+                  "        pm.expect(product.price).to.be.a('number');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar Productos con Filtros",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/products?page=1&limit=20&isAvailable=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "isAvailable",
+                  "value": "true"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "cat-001",
+                  "disabled": true
+                },
+                {
+                  "key": "isFeatured",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "isVegetarian",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "minPrice",
+                  "value": "100",
+                  "disabled": true
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "300",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "pasta",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lista productos con paginación y filtros.\n\n**No requiere autenticación**"
+          },
+          "response": [
+            {
+              "name": "Lista de productos",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"prod-001\",\n      \"name\": \"Bruschetta Clásica\",\n      \"slug\": \"bruschetta-clasica\",\n      \"description\": \"Pan tostado con tomate fresco\",\n      \"price\": 120.00,\n      \"imageUrl\": \"https://cdn.example.com/products/bruschetta.jpg\",\n      \"isVegetarian\": true,\n      \"isAvailable\": true,\n      \"category\": {\n        \"id\": \"cat-001\",\n        \"name\": \"Entradas\",\n        \"slug\": \"entradas\"\n      }\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"limit\": 20,\n    \"total\": 29,\n    \"totalPages\": 2,\n    \"hasNext\": true,\n    \"hasPrev\": false\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Products have category info', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.length > 0) {",
+                  "        pm.expect(jsonData.data[0]).to.have.property('category');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reservations",
+      "description": "Endpoints para gestión de reservaciones",
+      "item": [
+        {
+          "name": "Verificar Disponibilidad",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/reservations/availability?date=2024-01-25&partySize=4",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "reservations", "availability"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2024-01-25",
+                  "description": "Fecha de la reservación (YYYY-MM-DD)"
+                },
+                {
+                  "key": "partySize",
+                  "value": "4",
+                  "description": "Número de personas"
+                },
+                {
+                  "key": "time",
+                  "value": "20:00",
+                  "description": "Hora específica (opcional)",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Consulta los horarios disponibles para una fecha y cantidad de personas.\n\n**No requiere autenticación**"
+          },
+          "response": [
+            {
+              "name": "Disponibilidad encontrada",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"date\": \"2024-01-25\",\n    \"partySize\": 4,\n    \"availableSlots\": [\n      {\n        \"time\": \"13:00\",\n        \"tablesAvailable\": 3\n      },\n      {\n        \"time\": \"13:30\",\n        \"tablesAvailable\": 2\n      },\n      {\n        \"time\": \"14:00\",\n        \"tablesAvailable\": 4\n      },\n      {\n        \"time\": \"19:30\",\n        \"tablesAvailable\": 2\n      },\n      {\n        \"time\": \"20:00\",\n        \"tablesAvailable\": 1\n      },\n      {\n        \"time\": \"20:30\",\n        \"tablesAvailable\": 2\n      },\n      {\n        \"time\": \"21:00\",\n        \"tablesAvailable\": 3\n      }\n    ]\n  },\n  \"meta\": {\n    \"timestamp\": \"2024-01-15T10:30:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Sin disponibilidad",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"date\": \"2024-01-25\",\n    \"partySize\": 10,\n    \"availableSlots\": []\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has availability data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('date');",
+                  "    pm.expect(jsonData.data).to.have.property('partySize');",
+                  "    pm.expect(jsonData.data).to.have.property('availableSlots');",
+                  "});",
+                  "",
+                  "pm.test('Available slots is an array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.availableSlots).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Each slot has time and tables count', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.availableSlots.length > 0) {",
+                  "        const slot = jsonData.data.availableSlots[0];",
+                  "        pm.expect(slot).to.have.property('time');",
+                  "        pm.expect(slot).to.have.property('tablesAvailable');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear Reservación",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": \"{{restaurantId}}\",\n  \"partySize\": 4,\n  \"reservationDate\": \"2024-01-25\",\n  \"reservationTime\": \"20:00\",\n  \"notes\": \"Celebración de cumpleaños, si es posible mesa en terraza\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reservations",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations"]
+            },
+            "description": "Crea una nueva reservación.\n\n**Requiere autenticación**"
+          },
+          "response": [
+            {
+              "name": "Reservación creada",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"res-001\",\n    \"reservationNumber\": \"RES-20240125-000001\",\n    \"status\": \"pending\",\n    \"partySize\": 4,\n    \"reservationDate\": \"2024-01-25\",\n    \"reservationTime\": \"20:00\",\n    \"durationMinutes\": 90,\n    \"notes\": \"Celebración de cumpleaños, si es posible mesa en terraza\",\n    \"restaurant\": {\n      \"id\": \"rest-001\",\n      \"name\": \"La Trattoria Italiana\",\n      \"phone\": \"+52 55 1234 5678\",\n      \"address\": \"Av. Presidente Masaryk 123\"\n    },\n    \"createdAt\": \"2024-01-20T15:00:00Z\"\n  },\n  \"meta\": {\n    \"timestamp\": \"2024-01-20T15:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Sin disponibilidad",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"No hay disponibilidad para la fecha y hora seleccionadas\"\n  }\n}"
+            },
+            {
+              "name": "Restaurante cerrado",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"El restaurante está cerrado en la fecha seleccionada\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Reservation has required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "    pm.expect(jsonData.data).to.have.property('reservationNumber');",
+                  "    pm.expect(jsonData.data).to.have.property('status');",
+                  "    pm.expect(jsonData.data.status).to.equal('pending');",
+                  "});",
+                  "",
+                  "pm.test('Reservation has restaurant info', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('restaurant');",
+                  "    pm.expect(jsonData.data.restaurant).to.have.property('name');",
+                  "});",
+                  "",
+                  "// Guardar ID para otras pruebas",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.environment.set('reservationId', jsonData.data.id);",
+                  "    pm.environment.set('reservationNumber', jsonData.data.reservationNumber);",
+                  "    console.log('Reservation ID guardado:', jsonData.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar Mis Reservaciones",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reservations?upcoming=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations"],
+              "query": [
+                {
+                  "key": "upcoming",
+                  "value": "true",
+                  "description": "Solo reservaciones futuras"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "confirmed",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Lista las reservaciones del usuario autenticado.\n\n**Requiere autenticación**"
+          },
+          "response": [
+            {
+              "name": "Lista de reservaciones",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"res-001\",\n      \"reservationNumber\": \"RES-20240125-000001\",\n      \"status\": \"confirmed\",\n      \"partySize\": 4,\n      \"reservationDate\": \"2024-01-25\",\n      \"reservationTime\": \"20:00\",\n      \"durationMinutes\": 90,\n      \"restaurant\": {\n        \"id\": \"rest-001\",\n        \"name\": \"La Trattoria Italiana\",\n        \"address\": \"Av. Presidente Masaryk 123\",\n        \"phone\": \"+52 55 1234 5678\"\n      },\n      \"table\": {\n        \"tableNumber\": \"5\",\n        \"location\": \"terraza\"\n      },\n      \"createdAt\": \"2024-01-20T15:00:00Z\"\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"limit\": 20,\n    \"total\": 3,\n    \"totalPages\": 1,\n    \"hasNext\": false,\n    \"hasPrev\": false\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is an array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Each reservation has restaurant info', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data.length > 0) {",
+                  "        pm.expect(jsonData.data[0]).to.have.property('restaurant');",
+                  "        pm.expect(jsonData.data[0]).to.have.property('reservationDate');",
+                  "        pm.expect(jsonData.data[0]).to.have.property('reservationTime');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar Reservación (Restaurante)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/reservations/{{reservationId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "reservations", "{{reservationId}}", "status"]
+            },
+            "description": "Actualiza el estado de una reservación (solo propietario del restaurante).\n\nEstados válidos:\n- `confirmed`: Reservación confirmada\n- `seated`: Cliente llegó y está sentado\n- `completed`: Reservación completada\n- `no_show`: Cliente no llegó\n\n**Requiere autenticación (propietario)**"
+          },
+          "response": [
+            {
+              "name": "Confirmar reservación",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"res-001\",\n    \"reservationNumber\": \"RES-20240125-000001\",\n    \"status\": \"confirmed\",\n    \"partySize\": 4,\n    \"reservationDate\": \"2024-01-25\",\n    \"reservationTime\": \"20:00\",\n    \"table\": {\n      \"id\": \"table-005\",\n      \"tableNumber\": \"5\",\n      \"location\": \"terraza\"\n    },\n    \"confirmedAt\": \"2024-01-21T10:00:00Z\",\n    \"updatedAt\": \"2024-01-21T10:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Marcar como seated",
+              "originalRequest": {
+                "method": "PATCH",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"seated\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"res-001\",\n    \"status\": \"seated\",\n    \"updatedAt\": \"2024-01-25T20:05:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Marcar como no_show",
+              "originalRequest": {
+                "method": "PATCH",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"no_show\"\n}"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"res-001\",\n    \"status\": \"no_show\",\n    \"updatedAt\": \"2024-01-25T20:30:00Z\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Reservation status was updated', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('status');",
+                  "    pm.expect(jsonData.data).to.have.property('updatedAt');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar Reservación con Mesa",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tableId\": \"table-005\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/reservations/{{reservationId}}/confirm",
+              "host": ["{{baseUrl}}"],
+              "path": ["restaurants", "{{restaurantId}}", "reservations", "{{reservationId}}", "confirm"]
+            },
+            "description": "Confirma una reservación y asigna una mesa específica.\n\n**Requiere autenticación (propietario)**"
+          },
+          "response": [
+            {
+              "name": "Reservación confirmada con mesa",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"res-001\",\n    \"reservationNumber\": \"RES-20240125-000001\",\n    \"status\": \"confirmed\",\n    \"table\": {\n      \"id\": \"table-005\",\n      \"tableNumber\": \"5\",\n      \"location\": \"terraza\",\n      \"capacity\": 6\n    },\n    \"confirmedAt\": \"2024-01-21T10:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "Mesa no disponible",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"La mesa no está disponible para ese horario\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Reservation is confirmed with table', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.equal('confirmed');",
+                  "    pm.expect(jsonData.data).to.have.property('table');",
+                  "    pm.expect(jsonData.data).to.have.property('confirmedAt');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancelar Reservación",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Cambio de planes\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reservations/{{reservationId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["reservations", "{{reservationId}}", "cancel"]
+            },
+            "description": "Cancela una reservación pendiente o confirmada.\n\n**Requiere autenticación**"
+          },
+          "response": [
+            {
+              "name": "Reservación cancelada",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"res-001\",\n    \"reservationNumber\": \"RES-20240125-000001\",\n    \"status\": \"cancelled\",\n    \"cancellationReason\": \"Cambio de planes\",\n    \"cancelledAt\": \"2024-01-22T10:00:00Z\"\n  }\n}"
+            },
+            {
+              "name": "No se puede cancelar (muy cercana)",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"No se puede cancelar la reservación con menos de 2 horas de anticipación\"\n  }\n}"
+            },
+            {
+              "name": "Reservación no encontrada",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"Reservación no encontrada\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Reservation is cancelled', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.equal('cancelled');",
+                  "    pm.expect(jsonData.data).to.have.property('cancelledAt');",
+                  "});",
+                  "",
+                  "pm.test('Cancellation reason is saved', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('cancellationReason');",
+                  "    pm.expect(jsonData.data.cancellationReason).to.equal('Cambio de planes');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
