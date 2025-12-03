@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: restaurants_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: restaurants_user
+      POSTGRES_PASSWORD: restaurants_password
+      POSTGRES_DB: restaurants_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - restaurants_net
+
+volumes:
+  postgres_data:
+
+networks:
+  restaurants_net:
+    driver: bridge
