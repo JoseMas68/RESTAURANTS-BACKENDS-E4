@@ -90,7 +90,7 @@ export class RestaurantsService {
 
   async getMenus(restaurantId: string) {
     const { MENUS_MOCK } = await import('./mock/restaurants.mock');
-    return MENUS_MOCK[restaurantId] || [];
+    return (MENUS_MOCK as Record<string, any>)[restaurantId] || [];
   }
 
   async create(dto: CreateRestaurantDto) {
