@@ -16,49 +16,69 @@ export class RestaurantsService {
 
   async findAll(query: QueryRestaurantsDto) {
     // Retornar datos mock
-    const page = query.page || 1;
-    const limit = query.limit || 10;
-    
-    let filtered = RESTAURANTS_MOCK;
-    
-    // Filtrar por búsqueda
-    if (query.search) {
-      const searchLower = query.search.toLowerCase();
-      filtered = filtered.filter(
-        (r) =>
-          r.name.toLowerCase().includes(searchLower) ||
-          r.description.toLowerCase().includes(searchLower) ||
-          r.cuisine.toLowerCase().includes(searchLower)
-      );
+    try {
+      const page = Number(query.page) || 1;
+      const limit = Number(query.limit) || 10;
+      
+      // Verificar que RESTAURANTS_MOCK está disponible
+      if (!RESTAURANTS_MOCK || RESTAURANTS_MOCK.length === 0) {
+        return {
+          data: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            pages: 0,
+          },
+        };
+      }
+      
+      let filtered = RESTAURANTS_MOCK;
+      
+      // Filtrar por búsqueda
+      if (query.search) {
+        const searchLower = query.search.toLowerCase();
+        filtered = filtered.filter(
+          (r) =>
+            r.name.toLowerCase().includes(searchLower) ||
+            r.description.toLowerCase().includes(searchLower) ||
+            r.cuisine.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Aplicar paginación
+      const start = (page - 1) * limit;
+      const end = start + limit;
+      const data = filtered.slice(start, end);
+
+      return {
+        data: data.map((restaurant) => ({
+          id: restaurant.id,
+          name: restaurant.name,
+          slug: restaurant.slug,
+          description: restaurant.description,
+          imageUrl: restaurant.imageUrl,
+          address: restaurant.address,
+          phone: restaurant.phone,
+          email: restaurant.email,
+          cuisine: restaurant.cuisine,
+          rating: restaurant.rating,
+          reviewCount: restaurant.reviewCount,
+          isOpen: restaurant.isOpen,
+        })),
+        pagination: {
+          page,
+          limit,
+          total: filtered.length,
+          pages: Math.ceil(filtered.length / limit),
+        },
+      };
+    } catch (error) {
+      return {
+        data: [],
+        pagination: { page: 1, limit: 10, total: 0, pages: 0 },
+      };
     }
-
-    // Aplicar paginación
-    const start = (page - 1) * limit;
-    const end = start + limit;
-    const data = filtered.slice(start, end);
-
-    return {
-      data: data.map((restaurant) => ({
-        id: restaurant.id,
-        name: restaurant.name,
-        slug: restaurant.slug,
-        description: restaurant.description,
-        imageUrl: restaurant.imageUrl,
-        address: restaurant.address,
-        phone: restaurant.phone,
-        email: restaurant.email,
-        cuisine: restaurant.cuisine,
-        rating: restaurant.rating,
-        reviewCount: restaurant.reviewCount,
-        isOpen: restaurant.isOpen,
-      })),
-      pagination: {
-        page,
-        limit,
-        total: filtered.length,
-        pages: Math.ceil(filtered.length / limit),
-      },
-    };
   }
 
   async findOne(identifier: string) {
