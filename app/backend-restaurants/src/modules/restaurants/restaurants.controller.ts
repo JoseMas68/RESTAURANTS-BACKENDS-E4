@@ -18,16 +18,16 @@ export class RestaurantsController {
     return this.restaurantsService.findAll(query);
   }
 
-  @Get(':identifier')
-  @ApiOkResponse({ type: RestaurantResponseDto })
-  async findOne(@Param('identifier') identifier: string) {
-    return this.restaurantsService.findOne(identifier);
-  }
-
   @Get(':restaurantId/menus')
   @ApiOkResponse()
   async getMenus(@Param('restaurantId') restaurantId: string) {
     return this.restaurantsService.getMenus(restaurantId);
+  }
+
+  @Get(':identifier')
+  @ApiOkResponse({ type: RestaurantResponseDto })
+  async findOne(@Param('identifier') identifier: string) {
+    return this.restaurantsService.findOne(identifier);
   }
 
   @Post()

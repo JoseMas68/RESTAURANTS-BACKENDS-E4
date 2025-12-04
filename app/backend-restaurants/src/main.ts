@@ -23,6 +23,8 @@ async function bootstrap(): Promise<void> {
   app.useGlobalInterceptors(new TransformResponseInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 
+  app.setGlobalPrefix('api');
+
   const config = new DocumentBuilder()
     .setTitle('Restaurants API')
     .setDescription('API del sistema de restaurantes E4')
