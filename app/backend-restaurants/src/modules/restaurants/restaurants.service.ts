@@ -8,33 +8,89 @@ import { RestaurantEntity } from './entities/restaurant.entity';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { ErrorCodes } from '@common/exceptions/error-codes';
+import { RESTAURANTS_MOCK } from './mock/restaurants.mock';
 
 @Injectable()
 export class RestaurantsService {
   constructor(private readonly repository: RestaurantsRepository) {}
 
   async findAll(query: QueryRestaurantsDto) {
-    const result = await this.repository.paginate(query);
+    // Retornar datos mock
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    
+    let filtered = RESTAURANTS_MOCK;
+    
+    // Filtrar por búsqueda
+    if (query.search) {
+      const searchLower = query.search.toLowerCase();
+      filtered = filtered.filter(
+        (r) =>
+          r.name.toLowerCase().includes(searchLower) ||
+          r.description.toLowerCase().includes(searchLower) ||
+          r.cuisine.toLowerCase().includes(searchLower)
+      );
+    }
 
-    const data = result.data
-      .map((restaurant) => ({
-        restaurant,
-        isOpen: this.isOpenNow(restaurant.schedules),
-      }))
-      .filter((item) => (typeof query.isOpen === 'boolean' ? item.isOpen === query.isOpen : true))
-      .map((item) => RestaurantEntity.fromPrisma(item.restaurant, { isOpen: item.isOpen }));
+    // Aplicar paginación
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const data = filtered.slice(start, end);
 
-    return { data, pagination: result.pagination };
+    return {
+      data: data.map((restaurant) => ({
+        id: restaurant.id,
+        name: restaurant.name,
+        slug: restaurant.slug,
+        description: restaurant.description,
+        imageUrl: restaurant.imageUrl,
+        address: restaurant.address,
+        phone: restaurant.phone,
+        email: restaurant.email,
+        cuisine: restaurant.cuisine,
+        rating: restaurant.rating,
+        reviewCount: restaurant.reviewCount,
+        isOpen: restaurant.isOpen,
+      })),
+      pagination: {
+        page,
+        limit,
+        total: filtered.length,
+        pages: Math.ceil(filtered.length / limit),
+      },
+    };
   }
 
   async findOne(identifier: string) {
-    const restaurant = await this.repository.findByIdentifier(identifier);
+    // Buscar en mock por ID o slug
+    const restaurant = RESTAURANTS_MOCK.find(
+      (r) => r.id === identifier || r.slug === identifier
+    );
+
     if (!restaurant) {
       throw new NotFoundException({ code: ErrorCodes.NOT_FOUND, message: 'Restaurant not found' });
     }
 
-    const isOpen = this.isOpenNow(restaurant.schedules);
-    return RestaurantEntity.fromPrisma(restaurant, { isOpen });
+    return {
+      id: restaurant.id,
+      name: restaurant.name,
+      slug: restaurant.slug,
+      description: restaurant.description,
+      imageUrl: restaurant.imageUrl,
+      address: restaurant.address,
+      phone: restaurant.phone,
+      email: restaurant.email,
+      cuisine: restaurant.cuisine,
+      rating: restaurant.rating,
+      reviewCount: restaurant.reviewCount,
+      isOpen: restaurant.isOpen,
+      schedule: restaurant.schedule,
+    };
+  }
+
+  async getMenus(restaurantId: string) {
+    const { MENUS_MOCK } = await import('./mock/restaurants.mock');
+    return MENUS_MOCK[restaurantId] || [];
   }
 
   async create(dto: CreateRestaurantDto) {

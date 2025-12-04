@@ -24,6 +24,12 @@ export class RestaurantsController {
     return this.restaurantsService.findOne(identifier);
   }
 
+  @Get(':restaurantId/menus')
+  @ApiOkResponse()
+  async getMenus(@Param('restaurantId') restaurantId: string) {
+    return this.restaurantsService.getMenus(restaurantId);
+  }
+
   @Post()
   @ApiCreatedResponse({ type: RestaurantResponseDto })
   async create(@Body() dto: CreateRestaurantDto) {
