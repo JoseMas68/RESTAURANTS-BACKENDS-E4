@@ -34,7 +34,6 @@ export class RestaurantsService {
       },
     };
   }
-  }
 
   async findOne(identifier: string) {
     // Buscar en mock por ID o slug

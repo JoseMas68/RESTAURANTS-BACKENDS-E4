@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import Link from 'next/link';
 import { getRestaurantById, getMenuByRestaurantId, Restaurant, Menu, ApiError } from '@/lib/api';
 import RestaurantDetail from '@/components/organisms/RestaurantDetail';
@@ -8,13 +8,13 @@ import { ErrorAlert } from '@/components/molecules/StateComponents';
 import Button from '@/components/atoms/Button';
 
 interface RestaurantDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function RestaurantDetailPage({ params }: RestaurantDetailPageProps) {
-  const { id } = params;
+  const { id } = use(params);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menus, setMenus] = useState<Menu[]>([]);
   const [isLoadingRestaurant, setIsLoadingRestaurant] = useState(true);

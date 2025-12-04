@@ -12,6 +12,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/a
 export interface Restaurant {
   id: string;
   name: string;
+  slug?: string;
   description: string;
   imageUrl?: string;
   cuisine?: string;
@@ -27,6 +28,10 @@ export interface Restaurant {
   schedule?: Schedule[];
   averageRating?: number;
   totalReviews?: number;
+  // Campos adicionales del mock
+  rating?: number;
+  reviewCount?: number;
+  isOpen?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -135,7 +140,10 @@ async function fetchAPI<T>(
     }
 
     // Parsear y retornar datos
-    const data: T = await response.json();
+    const jsonData = await response.json();
+    // El backend envuelve en { success: true, data: {...} }
+    // Desempaquetamos si existe esa estructura
+    const data: T = jsonData.data !== undefined ? jsonData.data : jsonData;
     return data;
   } catch (error) {
     // Si es un error de API, re-lanzarlo
